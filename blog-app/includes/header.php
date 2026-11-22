@@ -10,6 +10,17 @@ require_once __DIR__ . '/../config/config.php';
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="format-detection" content="telephone=no">
     <title><?php echo isset($pageTitle) ? escape($pageTitle) . ' - ' : ''; ?>Blog App</title>
+    <script>
+        // Inline anti-flicker theme initialization
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('theme');
+                const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const theme = savedTheme || (systemDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch(e) {}
+        })();
+    </script>
     <?php 
     // Try assetUrl first, fallback to direct path
     $cssUrl = assetUrl('/assets/css/style.css');
@@ -18,7 +29,6 @@ require_once __DIR__ . '/../config/config.php';
     <link rel="stylesheet" href="<?php echo $cssUrl; ?>" onerror="this.onerror=null; this.href='<?php echo $cssFallback; ?>';">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
     <style>
-        
         * { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; }
         body { 
             margin: 0; 
@@ -36,15 +46,6 @@ require_once __DIR__ . '/../config/config.php';
         .loading { 
             text-align: center; 
             padding: 2rem; 
-        }
-        .error-messages { 
-            background: #fee; 
-            border: 1px solid #fcc; 
-            padding: 1rem; 
-            margin: 1rem 0; 
-            -webkit-border-radius: 4px;
-            -moz-border-radius: 4px;
-            border-radius: 4px;
         }
     </style>
 </head>
@@ -80,10 +81,13 @@ require_once __DIR__ . '/../config/config.php';
                         <i class="fas fa-user-plus"></i> Register
                     </a>
                 <?php endif; ?>
+                <!-- Theme Toggle Button -->
+                <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle dark/light mode">
+                    <i class="fas fa-moon"></i>
+                </button>
             </div>
-            <button class="nav-toggle" id="navToggle">
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
     </nav>
-

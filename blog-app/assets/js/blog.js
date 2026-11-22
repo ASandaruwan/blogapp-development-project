@@ -1,5 +1,5 @@
+// Single Blog Post Page JavaScript
 
-// Use window.BASE_URL to avoid conflicts when multiple scripts are loaded
 if (typeof window.BASE_URL === 'undefined') {
     const baseUrlMeta = document.querySelector('meta[name="base-url"]');
     if (baseUrlMeta) {
@@ -17,6 +17,17 @@ if (typeof window.BASE_URL === 'undefined') {
 const appBaseUrl = window.BASE_URL;
 
 document.addEventListener('DOMContentLoaded', async function() {
+    // Reading Progress Bar tracker
+    const progressBar = document.getElementById('readingProgressBar');
+    if (progressBar) {
+        window.addEventListener('scroll', function() {
+            const scrollTop = window.scrollY || document.documentElement.scrollTop;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const percent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+            progressBar.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+        });
+    }
+
     const container = document.getElementById('blogContainer');
     
     try {
@@ -44,7 +55,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 <div class="blog-header">
                     <h1 class="blog-title">${escapeHtml(blog.title)}</h1>
                     <div class="blog-meta">
-                        <div>
+                        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
                             <div class="blog-author">
                                 <i class="fas fa-user"></i>
                                 <span>${escapeHtml(blog.username)}</span>
@@ -53,19 +64,34 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 <i class="fas fa-calendar"></i>
                                 <span>${formatDate(blog.created_at)}</span>
                             </div>
+                            <div class="blog-reading-time">
+                                <i class="far fa-clock"></i>
+                                <span>${calculateReadingTime(blog.content)}</span>
+                            </div>
                         </div>
                         ${actionsHTML}
                     </div>
                 </div>
-                <div class="blog-content">
+                <div class="blog-content" id="blogPostContent">
                     ${renderMarkdown(blog.content)}
                 </div>
             `;
+
+            // Syntax highlighting for code blocks
+            if (window.Prism) {
+                Prism.highlightAllUnder(container);
+            }
         } else {
             container.innerHTML = '<div class="error-messages active"><p>Blog not found.</p></div>';
+            if (window.showToast) {
+                showToast('Blog post not found', 'error', 'Error');
+            }
         }
     } catch (error) {
-        container.innerHTML = '<div class="error-messages active"><p>Error loading blog: ' + error.message + '</p></div>';
+        container.innerHTML = '<div class="error-messages active"><p>Error loading blog: ' + escapeHtml(error.message) + '</p></div>';
+        if (window.showToast) {
+            showToast('Failed to load blog: ' + error.message, 'error', 'Error');
+        }
     }
 });
 
@@ -86,14 +112,34 @@ async function deleteBlog(id) {
         const data = await response.json();
         
         if (data.success) {
-            alert('Blog deleted successfully!');
-            window.location.href = appBaseUrl + '/index.php';
+            if (window.showToast) {
+                showToast('Blog post deleted successfully', 'success', 'Deleted');
+            }
+            setTimeout(() => {
+                window.location.href = appBaseUrl + '/index.php';
+            }, 600);
         } else {
-            alert('Error: ' + (data.error || 'Failed to delete blog'));
+            if (window.showToast) {
+                showToast(data.error || 'Failed to delete blog', 'error', 'Error');
+            } else {
+                alert('Error: ' + (data.error || 'Failed to delete blog'));
+            }
         }
     } catch (error) {
-        alert('Error: ' + error.message);
+        if (window.showToast) {
+            showToast(error.message, 'error', 'Error');
+        } else {
+            alert('Error: ' + error.message);
+        }
     }
+}
+
+function calculateReadingTime(text) {
+    if (!text) return '1 min read';
+    const clean = text.replace(/<[^>]*>/g, '').replace(/[#*`_~\[\]]/g, '').trim();
+    const words = clean.split(/\s+/).filter(Boolean).length;
+    const minutes = Math.max(1, Math.ceil(words / 200));
+    return `${minutes} min read`;
 }
 
 function escapeHtml(text) {
@@ -111,52 +157,35 @@ function formatDate(dateString) {
     });
 }
 
-// Simple Markdown renderer
+// Markdown renderer with Marked.js + DOMPurify (and regex fallback)
 function renderMarkdown(text) {
+    if (!text) return '';
+
+    // If Marked and DOMPurify are loaded via CDN
+    if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+        try {
+            marked.setOptions({
+                breaks: true,
+                gfm: true
+            });
+            const rawHtml = marked.parse(text);
+            return DOMPurify.sanitize(rawHtml);
+        } catch (e) {
+            console.warn('Marked.js parse error, falling back to basic parser:', e);
+        }
+    }
+
+    // Fallback safe regex parser
     let html = escapeHtml(text);
-    
-    // Headers
     html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
     html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
     html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-    
-    // Bold
     html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/__(.*?)__/g, '<strong>$1</strong>');
-    
-    // Italic
     html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    html = html.replace(/_(.*?)_/g, '<em>$1</em>');
-    
-    // Code blocks
     html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-    
-    // Inline code
     html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-    
-    // Links
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-    
-    // Blockquotes
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
     html = html.replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>');
-    
-    // Lists
-    html = html.replace(/^\* (.*$)/gim, '<li>$1</li>');
-    html = html.replace(/^- (.*$)/gim, '<li>$1</li>');
-    html = html.replace(/^\+ (.*$)/gim, '<li>$1</li>');
-    html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-    
-    // Paragraphs
-    html = html.split('\n\n').map(para => {
-        if (!para.trim().startsWith('<') && para.trim()) {
-            return '<p>' + para.trim() + '</p>';
-        }
-        return para;
-    }).join('\n');
-    
-    // Line breaks
-    html = html.replace(/\n/g, '<br>');
-    
+    html = html.replace(/\n\n/g, '<br><br>');
     return html;
 }
-

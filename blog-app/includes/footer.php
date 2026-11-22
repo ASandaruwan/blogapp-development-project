@@ -33,8 +33,8 @@
                     <div class="footer-section">
                         <h4 class="footer-heading">Resources</h4>
                         <ul class="footer-links">
-                            <li><a href="#"><i class="fas fa-edit"></i> Markdown Editor</a></li>
-                            <li><a href="#"><i class="fas fa-search"></i> Search Blogs</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>/editor.php"><i class="fas fa-edit"></i> Markdown Editor</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>/index.php"><i class="fas fa-search"></i> Search Blogs</a></li>
                             <li><a href="#"><i class="fas fa-user-shield"></i> Secure Platform</a></li>
                             <li><a href="#"><i class="fas fa-mobile-alt"></i> Responsive Design</a></li>
                         </ul>
@@ -57,7 +57,7 @@
             </div>
         </div>
     </footer>
+    <script src="<?php echo assetUrl('/assets/js/toast.js'); ?>"></script>
     <script src="<?php echo assetUrl('/assets/js/main.js'); ?>" crossorigin="anonymous"></script>
 </body>
 </html>
-

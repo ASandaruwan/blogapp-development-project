@@ -60,13 +60,24 @@ async function handleLogin() {
         const result = await response.json();
         
         if (result.success) {
-            window.location.href = appBaseUrl + '/index.php';
+            if (window.showToast) {
+                showToast('Welcome back! Redirecting...', 'success', 'Login Successful');
+            }
+            setTimeout(() => {
+                window.location.href = appBaseUrl + '/index.php';
+            }, 600);
         } else {
             const errors = result.errors || [result.error || 'Login failed'];
+            if (window.showToast) {
+                showToast(errors[0], 'error', 'Authentication Failed');
+            }
             errorDiv.innerHTML = '<ul>' + errors.map(e => '<li>' + escapeHtml(e) + '</li>').join('') + '</ul>';
             errorDiv.classList.add('active');
         }
     } catch (error) {
+        if (window.showToast) {
+            showToast(error.message, 'error', 'Login Error');
+        }
         errorDiv.innerHTML = '<ul><li>Error: ' + escapeHtml(error.message) + '</li></ul>';
         errorDiv.classList.add('active');
     } finally {
@@ -110,13 +121,24 @@ async function handleRegister() {
         const result = await response.json();
         
         if (result.success) {
-            window.location.href = appBaseUrl + '/index.php';
+            if (window.showToast) {
+                showToast('Registration successful! Welcome aboard.', 'success', 'Account Created');
+            }
+            setTimeout(() => {
+                window.location.href = appBaseUrl + '/index.php';
+            }, 600);
         } else {
             const errors = result.errors || [result.error || 'Registration failed'];
+            if (window.showToast) {
+                showToast(errors[0], 'error', 'Registration Failed');
+            }
             errorDiv.innerHTML = '<ul>' + errors.map(e => '<li>' + escapeHtml(e) + '</li>').join('') + '</ul>';
             errorDiv.classList.add('active');
         }
     } catch (error) {
+        if (window.showToast) {
+            showToast(error.message, 'error', 'Registration Error');
+        }
         errorDiv.innerHTML = '<ul><li>Error: ' + escapeHtml(error.message) + '</li></ul>';
         errorDiv.classList.add('active');
     } finally {
