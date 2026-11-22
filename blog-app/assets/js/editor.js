@@ -1,7 +1,5 @@
-// Blog Editor JavaScript
+// Blog Editor JavaScript with EasyMDE & Modern Toast Notifications
 
-// Get BASE_URL from meta tag or calculate from current location
-// Use window.BASE_URL to avoid conflicts when multiple scripts are loaded
 if (typeof window.BASE_URL === 'undefined') {
     const baseUrlMeta = document.querySelector('meta[name="base-url"]');
     if (baseUrlMeta) {
@@ -18,47 +16,45 @@ if (typeof window.BASE_URL === 'undefined') {
 }
 const appBaseUrl = window.BASE_URL;
 
+let easyMDEInstance = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('blogForm');
-    const titleInput = document.getElementById('title');
     const contentTextarea = document.getElementById('content');
-    const previewDiv = document.getElementById('preview');
-    const previewToggle = document.getElementById('previewToggle');
     const cancelBtn = document.getElementById('cancelBtn');
-    const toolbarBtns = document.querySelectorAll('.toolbar-btn');
-    
-    // Load blog if editing
+
+    // Initialize EasyMDE Editor
+    if (contentTextarea && typeof EasyMDE !== 'undefined') {
+        easyMDEInstance = new EasyMDE({
+            element: contentTextarea,
+            autoDownloadFontAwesome: false,
+            spellChecker: false,
+            autosave: {
+                enabled: true,
+                uniqueId: editId > 0 ? `blog_edit_${editId}` : 'blog_new_draft',
+                delay: 1000,
+            },
+            placeholder: 'Write your story with Markdown... (Headings, code blocks, lists, links, quotes)',
+            renderingConfig: {
+                singleLineBreaks: false,
+                codeSyntaxHighlighting: true,
+            },
+            status: ['lines', 'words', 'cursor'],
+            toolbar: [
+                'bold', 'italic', 'strikethrough', 'heading', '|',
+                'quote', 'code', 'unordered-list', 'ordered-list', '|',
+                'link', 'image', 'table', 'horizontal-rule', '|',
+                'preview', 'side-by-side', 'fullscreen', '|',
+                'guide'
+            ]
+        });
+    }
+
+    // Load blog data if in edit mode
     if (editId > 0) {
         loadBlog(editId);
     }
-    
-    // Preview toggle
-    if (previewToggle) {
-        previewToggle.addEventListener('click', function() {
-            previewDiv.classList.toggle('active');
-            if (previewDiv.classList.contains('active')) {
-                updatePreview();
-            }
-        });
-    }
-    
-    // Update preview on content change
-    if (contentTextarea) {
-        contentTextarea.addEventListener('input', function() {
-            if (previewDiv.classList.contains('active')) {
-                updatePreview();
-            }
-        });
-    }
-    
-    // Toolbar buttons
-    toolbarBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const command = this.dataset.command;
-            insertMarkdown(command);
-        });
-    });
-    
+
     // Form submission
     if (form) {
         form.addEventListener('submit', async function(e) {
@@ -66,11 +62,14 @@ document.addEventListener('DOMContentLoaded', function() {
             await saveBlog();
         });
     }
-    
+
     // Cancel button
     if (cancelBtn) {
         cancelBtn.addEventListener('click', function() {
-            if (confirm('Are you sure you want to cancel? Unsaved changes will be lost.')) {
+            if (confirm('Are you sure you want to cancel? Any unsaved edits will be discarded.')) {
+                if (easyMDEInstance) {
+                    easyMDEInstance.clearAutosavedValue();
+                }
                 window.location.href = appBaseUrl + '/index.php';
             }
         });
@@ -85,31 +84,65 @@ async function loadBlog(id) {
         if (data.success && data.blog) {
             if (data.blog.is_owner) {
                 document.getElementById('title').value = data.blog.title;
-                document.getElementById('content').value = data.blog.content;
+                if (easyMDEInstance) {
+                    easyMDEInstance.value(data.blog.content);
+                } else {
+                    document.getElementById('content').value = data.blog.content;
+                }
             } else {
-                alert('You do not have permission to edit this blog.');
-                window.location.href = appBaseUrl + '/index.php';
+                if (window.showToast) {
+                    showToast('You do not have permission to edit this blog post.', 'error', 'Permission Denied');
+                } else {
+                    alert('You do not have permission to edit this blog.');
+                }
+                setTimeout(() => {
+                    window.location.href = appBaseUrl + '/index.php';
+                }, 1000);
             }
         } else {
-            alert('Blog not found.');
-            window.location.href = appBaseUrl + '/index.php';
+            if (window.showToast) {
+                showToast('Blog post not found.', 'error', 'Error');
+            } else {
+                alert('Blog not found.');
+            }
+            setTimeout(() => {
+                window.location.href = appBaseUrl + '/index.php';
+            }, 1000);
         }
     } catch (error) {
-        alert('Error loading blog: ' + error.message);
+        if (window.showToast) {
+            showToast('Error loading blog: ' + error.message, 'error', 'Error');
+        } else {
+            alert('Error loading blog: ' + error.message);
+        }
     }
 }
 
 async function saveBlog() {
     const title = document.getElementById('title').value.trim();
-    const content = document.getElementById('content').value.trim();
+    const content = easyMDEInstance ? easyMDEInstance.value().trim() : document.getElementById('content').value.trim();
     const blogId = document.getElementById('blogId').value;
     
-    if (!title || !content) {
-        alert('Please fill in all required fields.');
+    if (!title) {
+        if (window.showToast) {
+            showToast('Please enter a blog title.', 'warning', 'Missing Title');
+        } else {
+            alert('Please enter a title.');
+        }
+        document.getElementById('title').focus();
+        return;
+    }
+
+    if (!content) {
+        if (window.showToast) {
+            showToast('Please enter some content for your story.', 'warning', 'Missing Content');
+        } else {
+            alert('Please write some content.');
+        }
         return;
     }
     
-    const submitBtn = document.querySelector('button[type="submit"]');
+    const submitBtn = document.getElementById('saveBtn') || document.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
@@ -117,9 +150,8 @@ async function saveBlog() {
     try {
         const url = blogId > 0 ? `${appBaseUrl}/api/blogs/update.php` : `${appBaseUrl}/api/blogs/create.php`;
         let body = `title=${encodeURIComponent(title)}&content=${encodeURIComponent(content)}`;
-        
         if (blogId > 0) {
-            body += `&id=${blogId}`;
+            body += `&id=${encodeURIComponent(blogId)}`;
         }
         
         const response = await fetch(url, {
@@ -133,117 +165,40 @@ async function saveBlog() {
         const data = await response.json();
         
         if (data.success) {
-            alert(blogId > 0 ? 'Blog updated successfully!' : 'Blog created successfully!');
-            if (data.id) {
-                window.location.href = `${appBaseUrl}/blog.php?id=${data.id}`;
-            } else {
-                window.location.href = `${appBaseUrl}/blog.php?id=${blogId}`;
+            if (easyMDEInstance) {
+                easyMDEInstance.clearAutosavedValue();
             }
+            const targetId = blogId > 0 ? blogId : data.id;
+            const message = blogId > 0 ? 'Blog updated successfully!' : 'Story published successfully!';
+            
+            if (window.showToast) {
+                showToast(message, 'success', 'Saved');
+            }
+            
+            setTimeout(() => {
+                if (targetId) {
+                    window.location.href = `${appBaseUrl}/blog.php?id=${targetId}`;
+                } else {
+                    window.location.href = `${appBaseUrl}/index.php`;
+                }
+            }, 700);
         } else {
-            const errors = data.errors || [data.error || 'Failed to save blog'];
-            alert('Error: ' + errors.join('\n'));
+            const errorMsg = data.errors ? data.errors.join(', ') : (data.error || 'Failed to save blog');
+            if (window.showToast) {
+                showToast(errorMsg, 'error', 'Error Saving');
+            } else {
+                alert('Error: ' + errorMsg);
+            }
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
         }
     } catch (error) {
-        alert('Error: ' + error.message);
-    } finally {
+        if (window.showToast) {
+            showToast(error.message, 'error', 'Request Failed');
+        } else {
+            alert('Error: ' + error.message);
+        }
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
     }
 }
-
-function insertMarkdown(command) {
-    const textarea = document.getElementById('content');
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = textarea.value.substring(start, end);
-    let replacement = '';
-    
-    switch (command) {
-        case 'bold':
-            replacement = `**${selectedText || 'bold text'}**`;
-            break;
-        case 'italic':
-            replacement = `*${selectedText || 'italic text'}*`;
-            break;
-        case 'heading':
-            replacement = `## ${selectedText || 'Heading'}`;
-            break;
-        case 'link':
-            replacement = `[${selectedText || 'link text'}](url)`;
-            break;
-        case 'code':
-            replacement = selectedText ? `\`${selectedText}\`` : '`code`';
-            break;
-        case 'quote':
-            replacement = `> ${selectedText || 'quote'}`;
-            break;
-        case 'list':
-            replacement = `- ${selectedText || 'list item'}`;
-            break;
-    }
-    
-    textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
-    textarea.focus();
-    textarea.setSelectionRange(start + replacement.length, start + replacement.length);
-}
-
-function updatePreview() {
-    const content = document.getElementById('content').value;
-    const preview = document.getElementById('preview');
-    preview.innerHTML = renderMarkdown(content);
-}
-
-function renderMarkdown(text) {
-    let html = escapeHtml(text);
-    
-    // Headers
-    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-    html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-    
-    // Bold
-    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/__(.*?)__/g, '<strong>$1</strong>');
-    
-    // Italic
-    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    html = html.replace(/_(.*?)_/g, '<em>$1</em>');
-    
-    // Code blocks
-    html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-    
-    // Inline code
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-    
-    // Links
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-    
-    // Blockquotes
-    html = html.replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>');
-    
-    // Lists
-    html = html.replace(/^\* (.*$)/gim, '<li>$1</li>');
-    html = html.replace(/^- (.*$)/gim, '<li>$1</li>');
-    html = html.replace(/^\+ (.*$)/gim, '<li>$1</li>');
-    html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-    
-    // Paragraphs
-    html = html.split('\n\n').map(para => {
-        if (!para.trim().startsWith('<') && para.trim()) {
-            return '<p>' + para.trim() + '</p>';
-        }
-        return para;
-    }).join('\n');
-    
-    // Line breaks
-    html = html.replace(/\n/g, '<br>');
-    
-    return html;
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-

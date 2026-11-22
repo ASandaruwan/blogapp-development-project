@@ -41,6 +41,39 @@
 
     // Wait for DOM to be fully loaded before initializing
     document.addEventListener('DOMContentLoaded', function() {
+        // Theme Toggle Controller
+        const themeToggleBtn = document.getElementById('themeToggle');
+        if (themeToggleBtn) {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            updateThemeIcon(currentTheme);
+
+            themeToggleBtn.addEventListener('click', function() {
+                const activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                const nextTheme = activeTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', nextTheme);
+                try {
+                    localStorage.setItem('theme', nextTheme);
+                } catch(e) {}
+                updateThemeIcon(nextTheme);
+                if (window.showToast) {
+                    showToast(`Switched to ${nextTheme} mode`, 'info', 'Theme Changed', 2000);
+                }
+            });
+
+            function updateThemeIcon(theme) {
+                const icon = themeToggleBtn.querySelector('i');
+                if (icon) {
+                    if (theme === 'dark') {
+                        icon.className = 'fas fa-sun';
+                        themeToggleBtn.setAttribute('title', 'Switch to Light Mode');
+                    } else {
+                        icon.className = 'fas fa-moon';
+                        themeToggleBtn.setAttribute('title', 'Switch to Dark Mode');
+                    }
+                }
+            }
+        }
+
         // Mobile Navigation Toggle
         const navToggle = document.getElementById('navToggle');
         const navMenu = document.querySelector('.nav-menu');
@@ -165,6 +198,10 @@
                                         <i class="fas fa-calendar"></i>
                                         <span>${formatDate(blog.created_at)}</span>
                                     </div>
+                                    <div class="blog-reading-time">
+                                        <i class="far fa-clock"></i>
+                                        <span>${calculateReadingTime(blog.content)}</span>
+                                    </div>
                                 </div>
                             </div>
                         `).join('');
@@ -280,6 +317,14 @@
             return escapeHtml(plainText);
         }
         return escapeHtml(plainText.substring(0, maxLength)) + '...';
+    }
+
+    function calculateReadingTime(text) {
+        if (!text) return '1 min read';
+        const plainText = text.replace(/<[^>]*>/g, '').replace(/[#*`_~\[\]]/g, '').trim();
+        const wordCount = plainText.split(/\s+/).filter(Boolean).length;
+        const minutes = Math.max(1, Math.ceil(wordCount / 200));
+        return `${minutes} min read`;
     }
 
     function formatDate(dateString) {

@@ -14,12 +14,36 @@
     --border-color: #e2e8f0;
     --text-color: #334155;
     --text-light: #64748b;
+    --body-bg: linear-gradient(to bottom, #ffffff 0%, #f0f9ff 50%, #e0f2fe 100%);
+    --surface-bg: #ffffff;
+    --surface-elevated: #ffffff;
+    --meta-bg: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+    --input-bg: #ffffff;
+    --input-border: #cbd5e1;
     --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
     --gradient-secondary: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
     --gradient-soft: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+}
+
+[data-theme="dark"] {
+    --dark-color: #f8fafc;
+    --light-color: #0f172a;
+    --border-color: #334155;
+    --text-color: #e2e8f0;
+    --text-light: #94a3b8;
+    --body-bg: #0b1120;
+    --surface-bg: #1e293b;
+    --surface-elevated: #162032;
+    --meta-bg: #151f30;
+    --input-bg: #0f172a;
+    --input-border: #475569;
+    --gradient-soft: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.5);
 }
 
 * {
@@ -38,11 +62,9 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     line-height: 1.6;
     color: var(--text-color);
-    background: linear-gradient(to bottom, #ffffff 0%, #f0f9ff 50%, #e0f2fe 100%);
-    background: -webkit-linear-gradient(top, #ffffff 0%, #f0f9ff 50%, #e0f2fe 100%);
-    background: -moz-linear-gradient(top, #ffffff 0%, #f0f9ff 50%, #e0f2fe 100%);
+    background: var(--body-bg);
     background-attachment: fixed;
-    -webkit-background-attachment: fixed;
+    transition: background-color 0.25s ease, color 0.25s ease;
     min-height: 100vh;
     min-height: -webkit-fill-available;
     display: -webkit-box;
@@ -1246,4 +1268,334 @@ body {
         font-size: 0.9rem;
     }
 }
+
+/* ========================================================
+   Theme Toggle Button
+   ======================================================== */
+.theme-toggle {
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.25s ease;
+    margin-left: 0.25rem;
+}
+
+.theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(20deg) scale(1.08);
+}
+
+.theme-toggle i {
+    pointer-events: none;
+}
+
+/* ========================================================
+   Dark Theme Component Adaptations
+   ======================================================== */
+[data-theme="dark"] .blog-card,
+[data-theme="dark"] .blog-single,
+[data-theme="dark"] .editor-container,
+[data-theme="dark"] .auth-card {
+    background-color: var(--surface-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .blog-card-meta {
+    background: var(--meta-bg);
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .search-input {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .search-input:focus {
+    border-color: var(--primary-light);
+    background-color: var(--surface-bg);
+}
+
+[data-theme="dark"] .footer {
+    background: #080d19;
+    border-top: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .blog-content pre {
+    background-color: #0d1527;
+    border: 1px solid #1e293b;
+}
+
+[data-theme="dark"] .blog-content code {
+    background-color: #1e293b;
+    color: #93c5fd;
+}
+
+[data-theme="dark"] .pagination button {
+    background-color: var(--surface-bg);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .pagination button.active {
+    background: var(--gradient-primary);
+    color: #ffffff;
+    border-color: transparent;
+}
+
+/* ========================================================
+   Reading Progress Bar
+   ======================================================== */
+.reading-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 4px;
+    width: 0%;
+    background: var(--gradient-primary);
+    z-index: 9999;
+    transition: width 0.08s ease-out;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.7);
+}
+
+/* ========================================================
+   Reading Time Badge
+   ======================================================== */
+.blog-reading-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    color: var(--text-light);
+    background: rgba(59, 130, 246, 0.09);
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-weight: 500;
+}
+
+[data-theme="dark"] .blog-reading-time {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+
+/* ========================================================
+   Modern Animated Toast Notification System
+   ======================================================== */
+.toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 100000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 400px;
+    width: calc(100% - 48px);
+    pointer-events: none;
+}
+
+.toast {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    background: var(--surface-bg);
+    color: var(--text-color);
+    box-shadow: var(--shadow-xl);
+    border-left: 5px solid;
+    border-top: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: auto;
+    overflow: hidden;
+}
+
+.toast.toast-visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast.toast-hiding {
+    opacity: 0;
+    transform: translateX(110%);
+}
+
+.toast-icon {
+    font-size: 1.35rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.toast-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.toast-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 3px;
+    color: var(--dark-color);
+}
+
+.toast-message {
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: var(--text-light);
+    word-break: break-word;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 1.35rem;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.toast-close:hover {
+    color: var(--text-color);
+    transform: scale(1.15);
+}
+
+.toast-progress-track {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.toast-progress-fill {
+    height: 100%;
+    width: 100%;
+}
+
+/* Toast Color Schemes */
+.toast-success {
+    border-left-color: var(--success-color);
+}
+.toast-success .toast-icon {
+    color: var(--success-color);
+}
+.toast-success .toast-progress-fill {
+    background: var(--success-color);
+}
+
+.toast-error {
+    border-left-color: var(--danger-color);
+}
+.toast-error .toast-icon {
+    color: var(--danger-color);
+}
+.toast-error .toast-progress-fill {
+    background: var(--danger-color);
+}
+
+.toast-warning {
+    border-left-color: var(--warning-color);
+}
+.toast-warning .toast-icon {
+    color: var(--warning-color);
+}
+.toast-warning .toast-progress-fill {
+    background: var(--warning-color);
+}
+
+.toast-info {
+    border-left-color: var(--primary-color);
+}
+.toast-info .toast-icon {
+    color: var(--primary-color);
+}
+.toast-info .toast-progress-fill {
+    background: var(--primary-color);
+}
+
+/* ========================================================
+   EasyMDE Editor Styling & Dark Mode Integration
+   ======================================================== */
+.EasyMDEContainer {
+    width: 100%;
+}
+
+.EasyMDEContainer .editor-toolbar {
+    border-color: var(--border-color) !important;
+    background-color: var(--surface-bg) !important;
+    border-radius: 0.5rem 0.5rem 0 0;
+    padding: 0.5rem;
+}
+
+.EasyMDEContainer .editor-toolbar button {
+    color: var(--text-color) !important;
+    border-radius: 4px;
+    transition: background 0.15s;
+}
+
+.EasyMDEContainer .editor-toolbar button:hover,
+.EasyMDEContainer .editor-toolbar button.active {
+    background: rgba(59, 130, 246, 0.15) !important;
+    border-color: transparent !important;
+}
+
+.EasyMDEContainer .editor-toolbar i.separator {
+    border-left-color: var(--border-color) !important;
+    border-right-color: transparent !important;
+}
+
+.EasyMDEContainer .CodeMirror {
+    border-color: var(--border-color) !important;
+    background-color: var(--input-bg) !important;
+    color: var(--text-color) !important;
+    font-family: 'Fira Code', Consolas, 'Courier New', monospace;
+    font-size: 0.95rem;
+    min-height: 400px;
+    border-radius: 0 0 0.5rem 0.5rem;
+}
+
+.EasyMDEContainer .CodeMirror-cursor {
+    border-left-color: var(--text-color) !important;
+}
+
+.EasyMDEContainer .editor-preview,
+.EasyMDEContainer .editor-preview-side {
+    background-color: var(--surface-bg) !important;
+    color: var(--text-color) !important;
+    border-color: var(--border-color) !important;
+    padding: 1.5rem !important;
+}
+
+.EasyMDEContainer .editor-statusbar {
+    color: var(--text-light) !important;
+    padding: 0.5rem !important;
+    font-size: 0.85rem;
+}
+
+/* Prism.js Code Block Styling Enhancements */
+pre[class*="language-"] {
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    box-shadow: var(--shadow);
+}
+
 
