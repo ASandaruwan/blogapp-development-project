@@ -73,3 +73,40 @@ function assetUrl($path) {
     return BASE_URL . $path . '?v=' . $version;
 }
 
+// Helper to generate unique SEO-friendly slug
+function createSlug($title, $pdo, $postId = null) {
+    $slug = strtolower(trim($title));
+    $slug = preg_replace('/[^a-z0-9-]+/', '-', $slug);
+    $slug = trim($slug, '-');
+    if (empty($slug)) {
+        $slug = 'story';
+    }
+    
+    $originalSlug = $slug;
+    $count = 1;
+    while (true) {
+        $sql = "SELECT id FROM blogPost WHERE slug = ?" . ($postId ? " AND id != ?" : "");
+        $params = $postId ? [$slug, $postId] : [$slug];
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        if (!$stmt->fetch()) {
+            break;
+        }
+        $count++;
+        $slug = $originalSlug . '-' . $count;
+    }
+    return $slug;
+}
+
+// Helper to get user avatar URL
+function getAvatarUrl($avatarPath, $username = 'User') {
+    if (!empty($avatarPath)) {
+        if (strpos($avatarPath, 'http') === 0) {
+            return $avatarPath;
+        }
+        return BASE_URL . $avatarPath;
+    }
+    return 'https://ui-avatars.com/api/?name=' . urlencode($username) . '&background=3b82f6&color=ffffff&bold=true';
+}
+
+

@@ -21,7 +21,9 @@
                         <ul class="footer-links">
                             <li><a href="<?php echo BASE_URL; ?>/index.php"><i class="fas fa-home"></i> Home</a></li>
                             <?php if (isLoggedIn()): ?>
-                                <li><a href="<?php echo BASE_URL; ?>/editor.php"><i class="fas fa-plus"></i> Create Post</a></li>
+                                <li><a href="<?php echo BASE_URL; ?>/editor.php"><i class="fas fa-plus"></i> Create Story</a></li>
+                                <li><a href="<?php echo BASE_URL; ?>/dashboard.php"><i class="fas fa-th-large"></i> Dashboard</a></li>
+                                <li><a href="<?php echo BASE_URL; ?>/profile.php"><i class="fas fa-user-circle"></i> Profile</a></li>
                                 <li><a href="<?php echo BASE_URL; ?>/api/auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                             <?php else: ?>
                                 <li><a href="<?php echo BASE_URL; ?>/login.php"><i class="fas fa-sign-in-alt"></i> Login</a></li>
