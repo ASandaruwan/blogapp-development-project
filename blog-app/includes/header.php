@@ -7,6 +7,7 @@ require_once __DIR__ . '/../config/config.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="base-url" content="<?php echo BASE_URL; ?>">
+    <meta name="csrf-token" content="<?php echo getCsrfToken(); ?>">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="format-detection" content="telephone=no">
     <title><?php echo isset($pageTitle) ? escape($pageTitle) . ' - ' : ''; ?>Blog App</title>
@@ -21,6 +22,7 @@ require_once __DIR__ . '/../config/config.php';
             } catch(e) {}
         })();
     </script>
+    <script src="<?php echo assetUrl('/assets/js/csrf.js'); ?>"></script>
     <?php 
     // Try assetUrl first, fallback to direct path
     $cssUrl = assetUrl('/assets/css/style.css');
@@ -53,23 +55,23 @@ require_once __DIR__ . '/../config/config.php';
     <nav class="navbar">
         <div class="container">
             <div class="nav-brand">
-                <a href="<?php echo BASE_URL; ?>/index.php">
+                <a href="<?php echo BASE_URL; ?>/">
                     <i class="fas fa-blog"></i> Blog App
                 </a>
             </div>
             <div class="nav-menu">
-                <a href="<?php echo BASE_URL; ?>/index.php" class="nav-link">
+                <a href="<?php echo BASE_URL; ?>/" class="nav-link">
                     <i class="fas fa-home"></i> Home
                 </a>
                 <?php if (isLoggedIn()): ?>
-                    <a href="<?php echo BASE_URL; ?>/editor.php" class="nav-link">
+                    <a href="<?php echo BASE_URL; ?>/editor" class="nav-link">
                         <i class="fas fa-plus"></i> New Post
                     </a>
-                    <a href="<?php echo BASE_URL; ?>/dashboard.php" class="nav-link">
+                    <a href="<?php echo BASE_URL; ?>/dashboard" class="nav-link">
                         <i class="fas fa-th-large"></i> Dashboard
                     </a>
                     <div class="nav-user">
-                        <a href="<?php echo BASE_URL; ?>/profile.php" class="nav-link" title="View Profile">
+                        <a href="<?php echo BASE_URL; ?>/profile" class="nav-link" title="View Profile">
                             <i class="fas fa-user-circle"></i> <?php echo escape($_SESSION['username']); ?>
                         </a>
                         <a href="<?php echo BASE_URL; ?>/api/auth/logout.php" class="nav-link btn-logout" title="Sign out">
@@ -77,10 +79,10 @@ require_once __DIR__ . '/../config/config.php';
                         </a>
                     </div>
                 <?php else: ?>
-                    <a href="<?php echo BASE_URL; ?>/login.php" class="nav-link">
+                    <a href="<?php echo BASE_URL; ?>/login" class="nav-link">
                         <i class="fas fa-sign-in-alt"></i> Login
                     </a>
-                    <a href="<?php echo BASE_URL; ?>/register.php" class="nav-link btn-primary">
+                    <a href="<?php echo BASE_URL; ?>/register" class="nav-link btn-primary">
                         <i class="fas fa-user-plus"></i> Register
                     </a>
                 <?php endif; ?>

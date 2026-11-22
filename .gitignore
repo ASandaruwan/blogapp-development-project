@@ -1,0 +1,23 @@
+# Environment Credentials
+.env
+.env.local
+.env.*.local
+
+# Logs and Sessions
+*.log
+logs/
+
+# Uploaded User Content
+blog-app/uploads/covers/*
+!blog-app/uploads/covers/.gitignore
+blog-app/uploads/avatars/*
+!blog-app/uploads/avatars/.gitignore
+
+# Operating System & IDE Artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace

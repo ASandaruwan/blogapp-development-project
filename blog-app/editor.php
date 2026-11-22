@@ -100,7 +100,9 @@ $editId = isset($_GET['id']) ? intval($_GET['id']) : 0;
     const baseUrl = '<?php echo BASE_URL; ?>';
 </script>
 
-<!-- EasyMDE & Prism scripts -->
+<!-- Markdown Sanitizer, Parser, EasyMDE & Prism scripts -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>

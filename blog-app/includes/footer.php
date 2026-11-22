@@ -19,15 +19,15 @@
                     <div class="footer-section">
                         <h4 class="footer-heading">Quick Links</h4>
                         <ul class="footer-links">
-                            <li><a href="<?php echo BASE_URL; ?>/index.php"><i class="fas fa-home"></i> Home</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>/"><i class="fas fa-home"></i> Home</a></li>
                             <?php if (isLoggedIn()): ?>
-                                <li><a href="<?php echo BASE_URL; ?>/editor.php"><i class="fas fa-plus"></i> Create Story</a></li>
-                                <li><a href="<?php echo BASE_URL; ?>/dashboard.php"><i class="fas fa-th-large"></i> Dashboard</a></li>
-                                <li><a href="<?php echo BASE_URL; ?>/profile.php"><i class="fas fa-user-circle"></i> Profile</a></li>
+                                <li><a href="<?php echo BASE_URL; ?>/editor"><i class="fas fa-plus"></i> Create Story</a></li>
+                                <li><a href="<?php echo BASE_URL; ?>/dashboard"><i class="fas fa-th-large"></i> Dashboard</a></li>
+                                <li><a href="<?php echo BASE_URL; ?>/profile"><i class="fas fa-user-circle"></i> Profile</a></li>
                                 <li><a href="<?php echo BASE_URL; ?>/api/auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                             <?php else: ?>
-                                <li><a href="<?php echo BASE_URL; ?>/login.php"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-                                <li><a href="<?php echo BASE_URL; ?>/register.php"><i class="fas fa-user-plus"></i> Register</a></li>
+                                <li><a href="<?php echo BASE_URL; ?>/login"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                                <li><a href="<?php echo BASE_URL; ?>/register"><i class="fas fa-user-plus"></i> Register</a></li>
                             <?php endif; ?>
                         </ul>
                     </div>
@@ -35,8 +35,8 @@
                     <div class="footer-section">
                         <h4 class="footer-heading">Resources</h4>
                         <ul class="footer-links">
-                            <li><a href="<?php echo BASE_URL; ?>/editor.php"><i class="fas fa-edit"></i> Markdown Editor</a></li>
-                            <li><a href="<?php echo BASE_URL; ?>/index.php"><i class="fas fa-search"></i> Search Blogs</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>/editor"><i class="fas fa-edit"></i> Markdown Editor</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>/"><i class="fas fa-search"></i> Search Blogs</a></li>
                             <li><a href="#"><i class="fas fa-user-shield"></i> Secure Platform</a></li>
                             <li><a href="#"><i class="fas fa-mobile-alt"></i> Responsive Design</a></li>
                         </ul>

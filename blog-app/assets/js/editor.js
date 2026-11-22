@@ -40,6 +40,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                 singleLineBreaks: false,
                 codeSyntaxHighlighting: true,
             },
+            previewRender: function(plainText) {
+                if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+                    marked.setOptions({ breaks: true, gfm: true });
+                    return DOMPurify.sanitize(marked.parse(plainText));
+                }
+                return plainText;
+            },
             status: ['lines', 'words', 'cursor'],
             toolbar: [
                 'bold', 'italic', 'strikethrough', 'heading', '|',
@@ -325,13 +332,13 @@ async function saveBlog(targetStatus = 'published') {
             
             setTimeout(() => {
                 if (targetStatus === 'draft') {
-                    window.location.href = `${appBaseUrl}/dashboard.php`;
+                    window.location.href = `${appBaseUrl}/dashboard`;
                 } else if (data.slug) {
-                    window.location.href = `${appBaseUrl}/blog.php?slug=${data.slug}`;
+                    window.location.href = `${appBaseUrl}/posts/${data.slug}`;
                 } else if (data.id) {
                     window.location.href = `${appBaseUrl}/blog.php?id=${data.id}`;
                 } else {
-                    window.location.href = `${appBaseUrl}/index.php`;
+                    window.location.href = `${appBaseUrl}/`;
                 }
             }, 700);
         } else {

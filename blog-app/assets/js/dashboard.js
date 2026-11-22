@@ -107,14 +107,14 @@ async function loadTabContent(tabName) {
         if (data.success && data.blogs) {
             if (data.blogs.length === 0) {
                 let emptyMsg = 'No published stories yet.';
-                let btnHtml = `<a href="${appBaseUrl}/editor.php" class="btn btn-primary" style="margin-top: 1rem;"><i class="fas fa-plus"></i> Write Your First Story</a>`;
+                let btnHtml = `<a href="${appBaseUrl}/editor" class="btn btn-primary" style="margin-top: 1rem;"><i class="fas fa-plus"></i> Write Your First Story</a>`;
                 
                 if (tabName === 'drafts') {
                     emptyMsg = 'You have no saved drafts.';
-                    btnHtml = `<a href="${appBaseUrl}/editor.php" class="btn btn-primary" style="margin-top: 1rem;"><i class="fas fa-edit"></i> Start a New Draft</a>`;
+                    btnHtml = `<a href="${appBaseUrl}/editor" class="btn btn-primary" style="margin-top: 1rem;"><i class="fas fa-edit"></i> Start a New Draft</a>`;
                 } else if (tabName === 'bookmarks') {
                     emptyMsg = 'You haven\'t bookmarked any stories yet.';
-                    btnHtml = `<a href="${appBaseUrl}/index.php" class="btn btn-primary" style="margin-top: 1rem;"><i class="fas fa-compass"></i> Explore Stories</a>`;
+                    btnHtml = `<a href="${appBaseUrl}/" class="btn btn-primary" style="margin-top: 1rem;"><i class="fas fa-compass"></i> Explore Stories</a>`;
                 }
 
                 container.innerHTML = `
@@ -129,7 +129,9 @@ async function loadTabContent(tabName) {
 
             container.innerHTML = data.blogs.map(blog => {
                 const isDraft = blog.status === 'draft';
-                const postUrl = isDraft ? `${appBaseUrl}/editor.php?id=${blog.id}` : `${appBaseUrl}/blog.php?${blog.slug ? 'slug=' + blog.slug : 'id=' + blog.id}`;
+                const postUrl = isDraft 
+                    ? `${appBaseUrl}/editor/${blog.id}` 
+                    : (blog.slug ? `${appBaseUrl}/posts/${blog.slug}` : `${appBaseUrl}/blog.php?id=${blog.id}`);
 
                 let coverHtml = '';
                 if (blog.cover_image) {
@@ -170,7 +172,7 @@ async function loadTabContent(tabName) {
                                 ${!isDraft ? `<span><i class="far fa-heart"></i> ${blog.like_count || 0}</span>` : ''}
                             </div>
                             <div style="display: flex; gap: 0.35rem;">
-                                <a href="${appBaseUrl}/editor.php?id=${blog.id}" class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.8rem;">
+                                <a href="${appBaseUrl}/editor/${blog.id}" class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.8rem;">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
                                 <button onclick="deleteStory(${blog.id})" class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.8rem;">

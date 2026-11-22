@@ -72,7 +72,9 @@ async function loadAuthorStories() {
             }
 
             container.innerHTML = data.blogs.map(blog => {
-                const postUrl = `${appBaseUrl}/blog.php?${blog.slug ? 'slug=' + blog.slug : 'id=' + blog.id}`;
+                const postUrl = blog.slug 
+                    ? `${appBaseUrl}/posts/${blog.slug}` 
+                    : `${appBaseUrl}/blog.php?id=${blog.id}`;
 
                 let coverHtml = '';
                 if (blog.cover_image) {
