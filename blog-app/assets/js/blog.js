@@ -115,7 +115,7 @@ async function loadBlogPost() {
             if (blog.is_owner) {
                 ownerActions = `
                     <div style="display: flex; gap: 0.5rem;">
-                        <a href="${appBaseUrl}/editor.php?id=${blog.id}" class="btn btn-secondary" style="padding: 0.4rem 0.85rem; font-size: 0.9rem;">
+                        <a href="${appBaseUrl}/editor/${blog.id}" class="btn btn-secondary" style="padding: 0.4rem 0.85rem; font-size: 0.9rem;">
                             <i class="fas fa-edit"></i> Edit
                         </a>
                         <button onclick="deleteBlog(${blog.id})" class="btn btn-danger" style="padding: 0.4rem 0.85rem; font-size: 0.9rem;">
@@ -164,7 +164,7 @@ async function loadBlogPost() {
                     <div style="flex: 1; min-width: 200px;">
                         <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); font-weight: 700;">Written by</span>
                         <h4 style="margin: 0.2rem 0; font-size: 1.2rem;">
-                            <a href="${appBaseUrl}/profile.php?username=${encodeURIComponent(blog.username)}" style="color: inherit; text-decoration: none;">
+                            <a href="${appBaseUrl}/profile/${encodeURIComponent(blog.username)}" style="color: inherit; text-decoration: none;">
                                 ${escapeHtml(blog.username)}
                             </a>
                         </h4>
@@ -173,7 +173,7 @@ async function loadBlogPost() {
                         </p>
                     </div>
                     <div>
-                        <a href="${appBaseUrl}/profile.php?username=${encodeURIComponent(blog.username)}" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.4rem 0.9rem;">
+                        <a href="${appBaseUrl}/profile/${encodeURIComponent(blog.username)}" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.4rem 0.9rem;">
                             View Profile
                         </a>
                     </div>
@@ -187,7 +187,7 @@ async function loadBlogPost() {
                     <h1 class="blog-title">${escapeHtml(blog.title)} ${statusBadge}</h1>
                     <div class="blog-meta" style="margin-top: 1rem;">
                         <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-                            <a href="${appBaseUrl}/profile.php?username=${encodeURIComponent(blog.username)}" 
+                            <a href="${appBaseUrl}/profile/${encodeURIComponent(blog.username)}" 
                                class="blog-author" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
                                 <img src="${escapeHtml(blog.avatar_url)}" alt="${escapeHtml(blog.username)}" 
                                      style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
@@ -263,7 +263,7 @@ async function loadComments(postId) {
                 <div class="comment-item" id="comment-${c.id}" 
                      style="background: var(--surface-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: var(--shadow);">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                        <a href="${appBaseUrl}/profile.php?username=${encodeURIComponent(c.username)}" 
+                        <a href="${appBaseUrl}/profile/${encodeURIComponent(c.username)}" 
                            style="display: flex; align-items: center; gap: 0.65rem; text-decoration: none; color: inherit;">
                             <img src="${escapeHtml(c.avatar_url)}" alt="${escapeHtml(c.username)}" 
                                  style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">

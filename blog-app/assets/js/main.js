@@ -183,7 +183,9 @@
                         `;
                     } else {
                         container.innerHTML = data.blogs.map(blog => {
-                            const postUrl = `${BASE_URL}/blog.php?${blog.slug ? 'slug=' + encodeURIComponent(blog.slug) : 'id=' + blog.id}`;
+                            const postUrl = blog.slug 
+                                ? `${BASE_URL}/posts/${encodeURIComponent(blog.slug)}` 
+                                : `${BASE_URL}/blog.php?id=${blog.id}`;
 
                             let coverHtml = '';
                             if (blog.cover_image) {
@@ -239,7 +241,7 @@
                                         ${tagsHtml}
                                     </div>
                                     <div class="blog-card-meta">
-                                        <a href="${BASE_URL}/profile.php?username=${encodeURIComponent(blog.username)}" 
+                                        <a href="${BASE_URL}/profile/${encodeURIComponent(blog.username)}" 
                                            class="blog-author" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
                                             <img src="${escapeHtml(blog.avatar_url)}" alt="${escapeHtml(blog.username)}" 
                                                  style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">

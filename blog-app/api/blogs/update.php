@@ -9,6 +9,9 @@ if (!isLoggedIn()) {
     exit;
 }
 
+// Validate CSRF Protection
+validateCsrfRequest();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = intval($_POST['id'] ?? 0);
     $title = trim($_POST['title'] ?? '');

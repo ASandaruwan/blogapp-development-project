@@ -83,6 +83,9 @@ try {
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             exit;
         }
+
+        // Validate CSRF Protection
+        validateCsrfRequest();
         
         $bio = trim($_POST['bio'] ?? '');
         $userId = getCurrentUserId();

@@ -9,6 +9,9 @@ if (!isLoggedIn()) {
     exit;
 }
 
+// Validate CSRF Protection
+validateCsrfRequest();
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['success' => false, 'error' => 'Invalid request method']);

@@ -1,22 +1,39 @@
+# Security & Clean RESTful URL Rewriting
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /blog-app/
 
-    # Clean story post route: /post/my-first-story -> blog.php?slug=my-first-story
+    # Security: Block sensitive files (.env, .git, .sql)
+    RewriteRule ^(\.env|\.git|database/.*\.sql) - [F,L,NC]
+
+    # RESTful API v1 Router
+    RewriteRule ^api/v1/.*$ api/v1/index.php [L,QSA]
+
+    # Clean Story Route: /posts/my-slug -> blog.php?slug=my-slug
+    RewriteRule ^posts/([a-zA-Z0-9_-]+)/?$ blog.php?slug=$1 [L,QSA]
     RewriteRule ^post/([a-zA-Z0-9_-]+)/?$ blog.php?slug=$1 [L,QSA]
 
-    # Clean category route: /category/technology -> index.php?category=technology
+    # Clean Category & Tag Routes
     RewriteRule ^category/([a-zA-Z0-9_-]+)/?$ index.php?category=$1 [L,QSA]
-
-    # Clean tag route: /tag/php -> index.php?tag=$1
     RewriteRule ^tag/([a-zA-Z0-9_-]+)/?$ index.php?tag=$1 [L,QSA]
 
-    # Clean author route: /author/username -> profile.php?username=username
-    RewriteRule ^author/([a-zA-Z0-9_-]+)/?$ profile.php?username=$1 [L,QSA]
+    # Clean Author Profile Route: /profile/username -> profile.php?username=username
+    RewriteRule ^profile/([a-zA-Z0-9_-]+)/?$ profile.php?username=$1 [L,QSA]
 
-    # Clean shortcuts
-    RewriteRule ^dashboard/?$ dashboard.php [L,QSA]
-    RewriteRule ^editor/?$ editor.php [L,QSA]
-    RewriteRule ^login/?$ login.php [L,QSA]
-    RewriteRule ^register/?$ register.php [L,QSA]
+    # Clean Editor with ID: /editor/5 -> editor.php?id=5
+    RewriteRule ^editor/([0-9]+)/?$ editor.php?id=$1 [L,QSA]
+
+    # Extensionless PHP routes: /dashboard -> dashboard.php
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^([^\.]+)$ $1.php [NC,L,QSA]
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>

@@ -9,6 +9,9 @@ if (!isLoggedIn()) {
     exit;
 }
 
+// Validate CSRF Protection
+validateCsrfRequest();
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_FILES['avatar'])) {
     http_response_code(400);
     echo json_encode(['success' => false, 'error' => 'No avatar image uploaded']);
