@@ -65,11 +65,14 @@ require_once __DIR__ . '/../config/config.php';
                     <a href="<?php echo BASE_URL; ?>/editor.php" class="nav-link">
                         <i class="fas fa-plus"></i> New Post
                     </a>
+                    <a href="<?php echo BASE_URL; ?>/dashboard.php" class="nav-link">
+                        <i class="fas fa-th-large"></i> Dashboard
+                    </a>
                     <div class="nav-user">
-                        <span class="nav-link">
-                            <i class="fas fa-user"></i> <?php echo escape($_SESSION['username']); ?>
-                        </span>
-                        <a href="<?php echo BASE_URL; ?>/api/auth/logout.php" class="nav-link btn-logout">
+                        <a href="<?php echo BASE_URL; ?>/profile.php" class="nav-link" title="View Profile">
+                            <i class="fas fa-user-circle"></i> <?php echo escape($_SESSION['username']); ?>
+                        </a>
+                        <a href="<?php echo BASE_URL; ?>/api/auth/logout.php" class="nav-link btn-logout" title="Sign out">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </a>
                     </div>

@@ -1,0 +1,22 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /blog-app/
+
+    # Clean story post route: /post/my-first-story -> blog.php?slug=my-first-story
+    RewriteRule ^post/([a-zA-Z0-9_-]+)/?$ blog.php?slug=$1 [L,QSA]
+
+    # Clean category route: /category/technology -> index.php?category=technology
+    RewriteRule ^category/([a-zA-Z0-9_-]+)/?$ index.php?category=$1 [L,QSA]
+
+    # Clean tag route: /tag/php -> index.php?tag=$1
+    RewriteRule ^tag/([a-zA-Z0-9_-]+)/?$ index.php?tag=$1 [L,QSA]
+
+    # Clean author route: /author/username -> profile.php?username=username
+    RewriteRule ^author/([a-zA-Z0-9_-]+)/?$ profile.php?username=$1 [L,QSA]
+
+    # Clean shortcuts
+    RewriteRule ^dashboard/?$ dashboard.php [L,QSA]
+    RewriteRule ^editor/?$ editor.php [L,QSA]
+    RewriteRule ^login/?$ login.php [L,QSA]
+    RewriteRule ^register/?$ register.php [L,QSA]
+</IfModule>

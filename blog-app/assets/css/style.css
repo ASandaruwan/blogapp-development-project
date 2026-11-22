@@ -1598,4 +1598,68 @@ pre[class*="language-"] {
     box-shadow: var(--shadow);
 }
 
+/* ========================================================
+   Category Discovery Pills
+   ======================================================== */
+.category-pills {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scrollbar-width: none; /* Firefox */
+}
+
+.category-pills::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+}
+
+.cat-pill:hover {
+    border-color: var(--primary-color) !important;
+    transform: translateY(-1px);
+}
+
+/* ========================================================
+   Blog Card Cover & Zoom on Hover
+   ======================================================== */
+.blog-card-cover img:hover {
+    transform: scale(1.04);
+}
+
+/* ========================================================
+   Action Bar Buttons (Likes, Bookmarks, Share)
+   ======================================================== */
+.btn-action:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+/* ========================================================
+   Dashboard & Profile Dark Mode Enhancements
+   ======================================================== */
+[data-theme="dark"] .dashboard-header,
+[data-theme="dark"] .profile-card,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .author-bio-card,
+[data-theme="dark"] .comment-item,
+[data-theme="dark"] .comment-form {
+    background-color: var(--surface-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-color) !important;
+}
+
+[data-theme="dark"] .stat-card {
+    background-color: var(--surface-elevated) !important;
+}
+
+[data-theme="dark"] .author-bio-card {
+    background-color: var(--surface-elevated) !important;
+}
+
+[data-theme="dark"] .cat-pill {
+    background-color: var(--surface-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+
 

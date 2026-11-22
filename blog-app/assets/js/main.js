@@ -1,25 +1,16 @@
+// Upgraded Main JavaScript: Categories, Tags, SEO Slugs, Cards & Dark Mode
 
 (function() {
-    // Check for fetch API support (Safari compatibility)
     if (typeof fetch === 'undefined') {
-        console.error('Fetch API is not supported in this browser. Please update your browser.');
-        // Fallback: Show error message
-        document.addEventListener('DOMContentLoaded', function() {
-            const container = document.getElementById('blogsContainer');
-            if (container) {
-                container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #c33;"><p>Your browser does not support modern web features. Please update to a newer version.</p></div>';
-            }
-        });
+        console.error('Fetch API is not supported in this browser.');
         return;
     }
     
-    // Get BASE_URL from meta tag or calculate from current location
     if (typeof window.BASE_URL === 'undefined') {
         const baseUrlMeta = document.querySelector('meta[name="base-url"]');
         if (baseUrlMeta && baseUrlMeta.getAttribute('content')) {
             window.BASE_URL = baseUrlMeta.getAttribute('content').trim();
         } else {
-            // Fallback: calculate from current location
             const origin = window.location.origin;
             const path = window.location.pathname;
             const pathParts = path.split('/').filter(p => p);
@@ -29,19 +20,14 @@
                 window.BASE_URL = origin;
             }
         }
-        
-        // Remove trailing slash if present
         if (window.BASE_URL.endsWith('/')) {
             window.BASE_URL = window.BASE_URL.slice(0, -1);
         }
-        
-        console.log('BASE_URL set to:', window.BASE_URL);
     }
     const BASE_URL = window.BASE_URL;
 
-    // Wait for DOM to be fully loaded before initializing
-    document.addEventListener('DOMContentLoaded', function() {
-        // Theme Toggle Controller
+    document.addEventListener('DOMContentLoaded', async function() {
+        // 1. Theme Toggle Controller
         const themeToggleBtn = document.getElementById('themeToggle');
         if (themeToggleBtn) {
             const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
@@ -74,7 +60,7 @@
             }
         }
 
-        // Mobile Navigation Toggle
+        // 2. Mobile Navigation Toggle
         const navToggle = document.getElementById('navToggle');
         const navMenu = document.querySelector('.nav-menu');
         
@@ -84,7 +70,6 @@
             });
         }
         
-        // Close mobile menu when clicking outside
         document.addEventListener('click', function(e) {
             if (navMenu && navToggle && 
                 !navMenu.contains(e.target) && 
@@ -94,7 +79,7 @@
             }
         });
 
-        // Home Page - Load and Display Blogs
+        // 3. Home Page - Feed & Categories
         const blogsContainer = document.getElementById('blogsContainer');
         if (!blogsContainer) {
             return; // Not on the home page
@@ -102,220 +87,297 @@
         
         let currentPage = 1;
         let currentSearch = '';
-        
-        async function loadBlogs(page = 1, search = '') {
+        let currentCategory = '';
+        let currentTag = '';
+
+        // Read URL query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('search')) currentSearch = urlParams.get('search');
+        if (urlParams.get('category')) currentCategory = urlParams.get('category');
+        if (urlParams.get('tag')) currentTag = urlParams.get('tag');
+
+        // Load Category Pills
+        await loadCategoryPills();
+
+        // Load Blogs
+        async function loadBlogs(page = 1, search = currentSearch, category = currentCategory, tag = currentTag) {
+            currentPage = page;
+            currentSearch = search;
+            currentCategory = category;
+            currentTag = tag;
+
             const container = document.getElementById('blogsContainer');
             const pagination = document.getElementById('pagination');
             const searchResults = document.getElementById('searchResults');
+            const filterContainer = document.getElementById('activeFilterContainer');
+            const filterText = document.getElementById('activeFilterText');
+            const searchInput = document.getElementById('searchInput');
+            const clearSearchBtn = document.getElementById('clearSearchBtn');
             
-            container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading blogs...</div>';
+            container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading stories...</div>';
             
+            // Update Active Filter UI
+            if (category || tag || search) {
+                if (filterContainer && filterText) {
+                    let desc = [];
+                    if (category) desc.push(`Category: <strong>${escapeHtml(category)}</strong>`);
+                    if (tag) desc.push(`Tag: <strong>#${escapeHtml(tag)}</strong>`);
+                    if (search) desc.push(`Keyword: "<strong>${escapeHtml(search)}</strong>"`);
+                    filterText.innerHTML = `Filtering stories by ${desc.join(' &middot; ')}`;
+                    filterContainer.style.display = 'flex';
+                }
+            } else {
+                if (filterContainer) filterContainer.style.display = 'none';
+            }
+
+            // Highlight Active Category Pill
+            document.querySelectorAll('.cat-pill').forEach(pill => {
+                if ((pill.dataset.category || '') === currentCategory) {
+                    pill.style.background = 'var(--primary-color)';
+                    pill.style.color = '#ffffff';
+                    pill.style.borderColor = 'transparent';
+                } else {
+                    pill.style.background = 'var(--surface-bg)';
+                    pill.style.color = 'var(--text-color)';
+                    pill.style.borderColor = 'var(--border-color)';
+                }
+            });
+
             try {
-                // Ensure BASE_URL is set to writeable
-                if (!BASE_URL || BASE_URL === 'undefined') {
-                    throw new Error('BASE_URL is not defined. Please check the page configuration.');
-                }
+                let url = `${BASE_URL}/api/blogs/get.php?page=${page}&limit=9`;
+                if (search) url += `&search=${encodeURIComponent(search)}`;
+                if (category) url += `&category=${encodeURIComponent(category)}`;
+                if (tag) url += `&tag=${encodeURIComponent(tag)}`;
                 
-                let url = `${BASE_URL}/api/blogs/get.php?page=${page}`;
-                if (search) {
-                    url += `&search=${encodeURIComponent(search)}`;
-                }
-                
-                // Log URL for debugging
-                console.log('Fetching blogs from:', url);
-                console.log('BASE_URL:', BASE_URL);
-                
-                // (increased to 15 seconds for mobile)
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-                
-                // Fetch with better browser compatibility
-                const fetchOptions = {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    signal: controller.signal,
-                    cache: 'no-cache',
-                    credentials: 'same-origin',
-                    mode: 'cors'
-                };
-                
-                const response = await fetch(url, fetchOptions);
-                
-                clearTimeout(timeoutId);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP error! status: ${response.status}. Response: ${errorText.substring(0, 200)}`);
-                }
-                
-                const contentType = response.headers.get("content-type");
-                if (!contentType || !contentType.includes("application/json")) {
-                    const text = await response.text();
-                    throw new Error(`Expected JSON but got: ${contentType}. Response: ${text.substring(0, 200)}`);
-                }
-                
+                const response = await fetch(url);
                 const data = await response.json();
                 
-                console.log('Blogs loaded successfully:', data);
-                
                 if (data.success) {
-                    currentPage = data.page;
-                    currentSearch = data.search;
-                    
-                    // Show search results count
-                    if (search) {
+                    // Update search results indicator
+                    if (search && searchResults) {
                         searchResults.innerHTML = `
-                            <p><strong>${data.total}</strong> result(s) found for "<strong>${escapeHtml(search)}</strong>"</p>
+                            <p style="color: var(--text-light); margin: 0;"><strong>${data.total}</strong> story(ies) found for "<strong>${escapeHtml(search)}</strong>"</p>
                         `;
                         searchResults.style.display = 'block';
-                        document.getElementById('clearSearchBtn').style.display = 'inline-flex';
-                    } else {
+                        if (clearSearchBtn) clearSearchBtn.style.display = 'inline-flex';
+                    } else if (searchResults) {
                         searchResults.style.display = 'none';
-                        document.getElementById('clearSearchBtn').style.display = 'none';
+                        if (clearSearchBtn) clearSearchBtn.style.display = 'none';
                     }
                     
-                    // Display blogs
+                    if (searchInput && search) {
+                        searchInput.value = search;
+                    }
+
+                    // Render Blog Cards
                     if (data.blogs.length === 0) {
-                        container.innerHTML = '<div class="loading"><p>No blogs found. Be the first to create one!</p></div>';
-                    } else {
-                        container.innerHTML = data.blogs.map(blog => `
-                            <div class="blog-card">
-                                <div class="blog-card-header">
-                                    <h2 class="blog-card-title">
-                                        <a href="${BASE_URL}/blog.php?id=${blog.id}">${escapeHtml(blog.title)}</a>
-                                    </h2>
-                                    <p class="blog-card-excerpt">${truncateText(blog.content, 150)}</p>
-                                </div>
-                                <div class="blog-card-meta">
-                                    <div class="blog-author">
-                                        <i class="fas fa-user"></i>
-                                        <span>${escapeHtml(blog.username)}</span>
-                                    </div>
-                                    <div class="blog-date">
-                                        <i class="fas fa-calendar"></i>
-                                        <span>${formatDate(blog.created_at)}</span>
-                                    </div>
-                                    <div class="blog-reading-time">
-                                        <i class="far fa-clock"></i>
-                                        <span>${calculateReadingTime(blog.content)}</span>
-                                    </div>
-                                </div>
+                        container.innerHTML = `
+                            <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; background: var(--surface-bg); border: 1px dashed var(--border-color); border-radius: 12px;">
+                                <i class="fas fa-newspaper" style="font-size: 2.5rem; color: var(--text-light); margin-bottom: 0.75rem; display: block;"></i>
+                                <h3 style="margin: 0 0 0.5rem 0; color: var(--dark-color);">No stories found</h3>
+                                <p style="color: var(--text-light); margin: 0 0 1rem 0;">Try adjusting your filters or search keywords.</p>
+                                <button onclick="resetAllFilters()" class="btn btn-primary">
+                                    <i class="fas fa-undo"></i> Show All Stories
+                                </button>
                             </div>
-                        `).join('');
+                        `;
+                    } else {
+                        container.innerHTML = data.blogs.map(blog => {
+                            const postUrl = `${BASE_URL}/blog.php?${blog.slug ? 'slug=' + encodeURIComponent(blog.slug) : 'id=' + blog.id}`;
+
+                            let coverHtml = '';
+                            if (blog.cover_image) {
+                                coverHtml = `
+                                    <div class="blog-card-cover" style="height: 190px; overflow: hidden; position: relative;">
+                                        <a href="${postUrl}">
+                                            <img src="${blog.cover_url || (BASE_URL + blog.cover_image)}" 
+                                                 alt="${escapeHtml(blog.title)}" 
+                                                 style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
+                                        </a>
+                                        ${blog.category_name ? `
+                                            <a href="javascript:void(0)" onclick="filterByCategory('${escapeHtml(blog.category_slug)}')" 
+                                               style="position: absolute; top: 12px; left: 12px; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); color: #ffffff; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.65rem; border-radius: 20px; text-decoration: none;">
+                                                ${escapeHtml(blog.category_name)}
+                                            </a>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            } else if (blog.category_name) {
+                                coverHtml = `
+                                    <div style="padding: 1.25rem 1.5rem 0 1.5rem;">
+                                        <a href="javascript:void(0)" onclick="filterByCategory('${escapeHtml(blog.category_slug)}')" 
+                                           style="display: inline-block; background: rgba(59, 130, 246, 0.1); color: var(--primary-color); font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.65rem; border-radius: 20px; text-decoration: none;">
+                                            ${escapeHtml(blog.category_name)}
+                                        </a>
+                                    </div>
+                                `;
+                            }
+
+                            // Tags chips
+                            let tagsHtml = '';
+                            if (blog.tags && blog.tags.length > 0) {
+                                tagsHtml = `
+                                    <div style="display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.75rem;">
+                                        ${blog.tags.slice(0, 3).map(t => `
+                                            <a href="javascript:void(0)" onclick="filterByTag('${escapeHtml(t.slug)}')" 
+                                               style="font-size: 0.75rem; color: var(--text-light); background: var(--light-color); border: 1px solid var(--border-color); padding: 0.15rem 0.45rem; border-radius: 4px; text-decoration: none;">
+                                                #${escapeHtml(t.name)}
+                                            </a>
+                                        `).join('')}
+                                    </div>
+                                `;
+                            }
+
+                            return `
+                                <div class="blog-card" style="display: flex; flex-direction: column;">
+                                    ${coverHtml}
+                                    <div class="blog-card-header" style="flex: 1;">
+                                        <h2 class="blog-card-title">
+                                            <a href="${postUrl}">${escapeHtml(blog.title)}</a>
+                                        </h2>
+                                        <p class="blog-card-excerpt">${truncateText(blog.content, 140)}</p>
+                                        ${tagsHtml}
+                                    </div>
+                                    <div class="blog-card-meta">
+                                        <a href="${BASE_URL}/profile.php?username=${encodeURIComponent(blog.username)}" 
+                                           class="blog-author" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
+                                            <img src="${escapeHtml(blog.avatar_url)}" alt="${escapeHtml(blog.username)}" 
+                                                 style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                                            <span>${escapeHtml(blog.username)}</span>
+                                        </a>
+                                        <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.8rem;">
+                                            <span title="Reading time"><i class="far fa-clock"></i> ${calculateReadingTime(blog.content)}</span>
+                                            <span title="Views"><i class="far fa-eye"></i> ${blog.views || 0}</span>
+                                            <span title="Likes"><i class="far fa-heart"></i> ${blog.like_count || 0}</span>
+                                            <span title="Comments"><i class="far fa-comment"></i> ${blog.comment_count || 0}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
                     }
                     
-                    // Display pagination
+                    // Pagination
                     const totalPages = Math.ceil(data.total / data.limit);
                     if (totalPages > 1) {
                         let paginationHTML = '';
-                        
                         if (currentPage > 1) {
-                            paginationHTML += `<button onclick="loadBlogs(${currentPage - 1}, '${currentSearch}')">Previous</button>`;
+                            paginationHTML += `<button onclick="loadBlogs(${currentPage - 1})">Previous</button>`;
                         }
-                        
                         for (let i = 1; i <= totalPages; i++) {
                             if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                                paginationHTML += `<button class="${i === currentPage ? 'active' : ''}" 
-                                    onclick="loadBlogs(${i}, '${currentSearch}')">${i}</button>`;
+                                paginationHTML += `<button class="${i === currentPage ? 'active' : ''}" onclick="loadBlogs(${i})">${i}</button>`;
                             } else if (i === currentPage - 3 || i === currentPage + 3) {
                                 paginationHTML += `<button disabled>...</button>`;
                             }
                         }
-                        
                         if (currentPage < totalPages) {
-                            paginationHTML += `<button onclick="loadBlogs(${currentPage + 1}, '${currentSearch}')">Next</button>`;
+                            paginationHTML += `<button onclick="loadBlogs(${currentPage + 1})">Next</button>`;
                         }
-                        
                         pagination.innerHTML = paginationHTML;
                     } else {
                         pagination.innerHTML = '';
                     }
-                } else {
-                    container.innerHTML = '<div class="error-messages active"><p>Failed to load blogs. Please try again.</p></div>';
                 }
             } catch (error) {
-                console.error('Error loading blogs:', error);
-                console.error('BASE_URL was:', BASE_URL);
-                console.error('Current location:', window.location.href);
-                
-                let errorMessage = error.message;
-                if (error.name === 'AbortError') {
-                    errorMessage = 'Request timed out. Please check your internet connection and try again.';
-                } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                    errorMessage = 'Network error. Please check your internet connection.';
-                }
-                
-                // Show error message with inline styles (in case CSS didn't load)
                 container.innerHTML = `
-                    <div style="background: #fee; border: 2px solid #fcc; padding: 1.5rem; margin: 1rem 0; border-radius: 8px; color: #c33;">
-                        <p style="margin: 0 0 0.5rem 0; font-weight: bold; font-size: 1.1rem;">Error loading blogs:</p>
-                        <p style="margin: 0 0 1rem 0; color: #333;">${escapeHtml(errorMessage)}</p>
-                        <p style="margin: 0 0 1rem 0; font-size: 0.9rem; color: #666; word-break: break-all;">
-                            <strong>URL:</strong> ${escapeHtml(BASE_URL || 'Not set')}/api/blogs/get.php
-                        </p>
-                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                            <button onclick="window.location.reload()" style="background: #3b82f6; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 1rem;">
-                                🔄 Reload Page
-                            </button>
-                            <button onclick="if(typeof loadBlogs === 'function') { loadBlogs(${page}, '${currentSearch}'); } else { window.location.reload(); }" style="background: #6b7280; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 1rem;">
-                                🔁 Retry
-                            </button>
-                        </div>
+                    <div style="grid-column: 1 / -1; padding: 2rem; background: var(--surface-bg); border: 1px solid var(--danger-color); border-radius: 8px; color: var(--danger-color); text-align: center;">
+                        <p>Error loading stories: ${escapeHtml(error.message)}</p>
+                        <button onclick="loadBlogs(1)" class="btn btn-secondary">Retry</button>
                     </div>
                 `;
             }
         }
-        
-        // Search functionality
+
+        // Category Pills Loader
+        async function loadCategoryPills() {
+            const pillsContainer = document.getElementById('categoryPills');
+            if (!pillsContainer) return;
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/categories/get.php`);
+                const data = await response.json();
+
+                if (data.success && data.categories) {
+                    let html = `
+                        <button class="cat-pill" data-category="" onclick="filterByCategory('')" 
+                                style="white-space: nowrap; border-radius: 20px; padding: 0.45rem 1rem; border: 1px solid var(--border-color); background: var(--surface-bg); color: var(--text-color); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                            All Topics
+                        </button>
+                    `;
+
+                    html += data.categories.map(c => `
+                        <button class="cat-pill" data-category="${escapeHtml(c.slug)}" onclick="filterByCategory('${escapeHtml(c.slug)}')" 
+                                style="white-space: nowrap; border-radius: 20px; padding: 0.45rem 1rem; border: 1px solid var(--border-color); background: var(--surface-bg); color: var(--text-color); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                            ${escapeHtml(c.name)} <span style="opacity: 0.6; font-size: 0.75rem;">(${c.post_count})</span>
+                        </button>
+                    `).join('');
+
+                    pillsContainer.innerHTML = html;
+                }
+            } catch (e) {
+                console.warn('Failed to load category pills:', e);
+            }
+        }
+
+        // Search Handlers
         const searchInput = document.getElementById('searchInput');
         const searchBtn = document.getElementById('searchBtn');
         const clearSearchBtn = document.getElementById('clearSearchBtn');
-        
-        if (searchBtn) {
-            searchBtn.addEventListener('click', function() {
-                const search = searchInput.value.trim();
-                loadBlogs(1, search);
+        const clearFilterBtn = document.getElementById('clearFilterBtn');
+
+        if (searchBtn && searchInput) {
+            searchBtn.addEventListener('click', () => loadBlogs(1, searchInput.value.trim()));
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') loadBlogs(1, searchInput.value.trim());
             });
         }
-        
-        if (searchInput) {
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    const search = searchInput.value.trim();
-                    loadBlogs(1, search);
-                }
-            });
-        }
-        
-        if (clearSearchBtn) {
-            clearSearchBtn.addEventListener('click', function() {
+
+        if (clearSearchBtn && searchInput) {
+            clearSearchBtn.addEventListener('click', () => {
                 searchInput.value = '';
                 loadBlogs(1, '');
             });
         }
-        
-        // Make loadBlogs available globally
-        window.loadBlogs = loadBlogs;
-        
-        // Initial load
-        loadBlogs();
-    }); // End of DOMContentLoaded for blogs
 
-    // Helpe Functions
+        if (clearFilterBtn) {
+            clearFilterBtn.addEventListener('click', () => resetAllFilters());
+        }
+
+        // Global functions for inline HTML calls
+        window.loadBlogs = loadBlogs;
+        window.filterByCategory = function(categorySlug) {
+            currentCategory = categorySlug;
+            loadBlogs(1, currentSearch, currentCategory, currentTag);
+        };
+        window.filterByTag = function(tagSlug) {
+            currentTag = tagSlug;
+            loadBlogs(1, currentSearch, currentCategory, currentTag);
+        };
+        window.resetAllFilters = function() {
+            currentCategory = '';
+            currentTag = '';
+            currentSearch = '';
+            if (searchInput) searchInput.value = '';
+            loadBlogs(1, '', '', '');
+        };
+
+        // Initial Load
+        loadBlogs(1, currentSearch, currentCategory, currentTag);
+    });
+
+    // Helper functions
     function escapeHtml(text) {
+        if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
 
     function truncateText(text, maxLength) {
-        const plainText = text.replace(/<[^>]*>/g, '').replace(/[#*`_~]/g, '');
-        if (plainText.length <= maxLength) {
-            return escapeHtml(plainText);
-        }
+        if (!text) return '';
+        const plainText = text.replace(/<[^>]*>/g, '').replace(/[#*`_~\[\]]/g, '').trim();
+        if (plainText.length <= maxLength) return escapeHtml(plainText);
         return escapeHtml(plainText.substring(0, maxLength)) + '...';
     }
 
@@ -328,12 +390,8 @@
     }
 
     function formatDate(dateString) {
+        if (!dateString) return '';
         const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        });
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     }
 })();
-
